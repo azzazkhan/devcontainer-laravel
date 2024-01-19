@@ -6,6 +6,7 @@ UNAMEOUT="$(uname -s)"
 case "${UNAMEOUT}" in
     Linux*)             MACHINE=linux;;
     Darwin*)            MACHINE=mac;;
+    MINGW64_NT*)        MACHINE=windows;;
     *)                  MACHINE="UNKNOWN"
 esac
 
