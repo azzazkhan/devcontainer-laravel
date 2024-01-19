@@ -1,0 +1,48 @@
+{
+    "name": "Laravel Sail",
+    "dockerComposeFile": [
+        "../docker-compose.yml"
+    ],
+    "service": "laravel.test",
+    "workspaceFolder": "/var/www",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-azuretools.vscode-docker",
+                "mikestead.dotenv",
+                "EditorConfig.EditorConfig",
+                "dbaeumer.vscode-eslint",
+                "heybourn.headwind",
+                "ms-vscode.vscode-typescript-next",
+                "austenc.laravel-blade-spacer",
+                "amiralizadeh9480.laravel-extra-intellisense",
+                "porifa.laravel-intelephense",
+                "mohamedbenhida.laravel-intellisense",
+                "cjhowe7.laravel-blade",
+                "cierra.livewire-vscode",
+                "christian-kohler.path-intellisense",
+                "m1guelpf.better-pest",
+                "neilbrayfield.php-docblocker",
+                "bmewburn.vscode-intelephense-client",
+                "MehediDracula.php-namespace-resolver",
+                "esbenp.prettier-vscode",
+                "bradlc.vscode-tailwindcss"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "bash": {
+                    "path": "bash",
+                    "icon": "terminal-bash"
+                },
+                "zsh": {
+                    "path": "zsh"
+                }
+            }
+        }
+    },
+    "remoteUser": "sail",
+    "postCreateCommand": "post-create-container"
+    // "forwardPorts": [],
+    // "runServices": [],
+    // "shutdownAction": "none",
+}

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+composer install
+
+chown -R 1000:1000 /var/www 2>/dev/null || true
