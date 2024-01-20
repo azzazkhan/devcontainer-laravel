@@ -10,6 +10,8 @@ fi
 
 chmod -R ugo+rw /.composer
 
+(chown -R 1000:1000 /var/www 2>/dev/null || true) &
+
 if [ $# -gt 0 ]; then
     exec gosu $WWWUSER "$@"
 else
