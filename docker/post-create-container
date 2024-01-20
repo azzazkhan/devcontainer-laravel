@@ -2,4 +2,4 @@
 
 composer install
 
-chown -R 1000:1000 /var/www 2>/dev/null || true
+chown -R sail:1000 /var/www 2>/dev/null || true
