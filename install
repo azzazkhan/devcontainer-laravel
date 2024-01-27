@@ -9,3 +9,6 @@ curl -sSLO https://raw.githubusercontent.com/azzazkhan/devcontainer-laravel/mast
 curl -sSLO https://github.com/azzazkhan/devcontainer-laravel/raw/master/sail
 
 chmod +x sail
+
+echo "Sail files scaffoled succesfully!"
+echo ""
