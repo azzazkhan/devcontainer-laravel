@@ -4,8 +4,13 @@ if [ ! -d ".devcontainer" ]; then
     mkdir .devcontainer
 fi
 
-curl -sSL https://raw.githubusercontent.com/azzazkhan/devcontainer-laravel/master/.devcontainer/devcontainer.json -o .devcontainer/devcontainer.json
-curl -sSLO https://raw.githubusercontent.com/azzazkhan/devcontainer-laravel/master/docker-compose.yml
+if [ ! -d "docker" ]; then
+    mkdir docker
+fi
+
+curl -sSLO https://github.com/azzazkhan/devcontainer-laravel/raw/master/.devcontainer/devcontainer.json -o .devcontainer/devcontainer.json
+curl -sSLO https://github.com/azzazkhan/devcontainer-laravel/raw/master/docker-compose.yml
+curl -sSLO https://github.com/azzazkhan/devcontainer-laravel/raw/master/docker/create-testing-database.sh -o docker/create-testing-database.sh
 curl -sSLO https://github.com/azzazkhan/devcontainer-laravel/raw/master/sail
 
 chmod +x sail
