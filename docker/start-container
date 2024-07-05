@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-if [ ! -z "$WWWUSER" ]; then
-    usermod -u $WWWUSER sail
-fi
+WWWUSER=${WWWUSER:-1000}
+
+usermod -u $WWWUSER sail
 
 if [ ! -d /.composer ]; then
     mkdir /.composer
@@ -10,7 +10,7 @@ fi
 
 chmod -R ugo+rw /.composer
 
-(chown -R sail:1000 /var/www 2>/dev/null || true) &
+(chown -R $WWWUSER:$WWWUSER /var/www 2>/dev/null || true) &
 
 if [ $# -gt 0 ]; then
     exec gosu $WWWUSER "$@"
