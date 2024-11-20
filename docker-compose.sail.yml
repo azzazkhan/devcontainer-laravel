@@ -4,9 +4,6 @@ services:
         restart: unless-stopped
         extra_hosts:
             - 'host.docker.internal:host-gateway'
-        # ports:
-        #     - '${APP_PORT:-80}:80'
-        #     - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
         environment:
             WWWUSER: '${WWWUSER:-1000}'
             WWWGROUP: '${WWWGROUP:-1000}'
@@ -23,10 +20,10 @@ services:
             - mysql
             - redis
             - mailpit
-            - meilisearch
-            - minio
-            - soketi
-            - open-observe
+            # - typesense
+            # - minio
+            # - mongodb
+            # - soketi
         labels:
             - traefik.enable=true
             - traefik.http.routers.laravel.rule=Host(`laravel.localhost`)
@@ -118,103 +115,126 @@ services:
             - traefik.http.routers.laravel-phpmyadmin.entrypoints=web
             - traefik.http.services.laravel-phpmyadmin-service.loadbalancer.server.port=80
 
-    meilisearch:
-        image: 'getmeili/meilisearch:latest'
-        restart: unless-stopped
-        # ports:
-        #     - '${FORWARD_MEILISEARCH_PORT:-7700}:7700'
-        environment:
-            MEILI_NO_ANALYTICS: '${MEILISEARCH_NO_ANALYTICS:-false}'
-        volumes:
-            - 'sail-meilisearch:/meili_data'
-        networks:
-            - sail
-            - traefik
-        healthcheck:
-            test: ['CMD', 'wget', '--no-verbose', '--spider', 'http://localhost:7700/health']
-            retries: 3
-            timeout: 5s
-        labels:
-            - traefik.enable=true
-            - traefik.http.routers.laravel-meilisearch.rule=Host(`meilisearch.laravel.localhost`)
-            - traefik.http.routers.laravel-meilisearch.entrypoints=web
-            - traefik.http.services.laravel-meilisearch-service.loadbalancer.server.port=7700
+    # typesense:
+    #     image: typesense/typesense:27.1
+    #     environment:
+    #         TYPESENSE_DATA_DIR: '${TYPESENSE_DATA_DIR:-/typesense-data}'
+    #         TYPESENSE_API_KEY: '${TYPESENSE_API_KEY:-xyz}'
+    #         TYPESENSE_ENABLE_CORS: '${TYPESENSE_ENABLE_CORS:-true}'
+    #     # ports:
+    #     #   - '${FORWARD_TYPESENSE_PORT:-8108:8108}'
+    #     volumes:
+    #         - sail-typesense:/typesense-data
+    #     networks:
+    #         - traefik
+    #         - sail
+    #     healthcheck:
+    #         test: ['CMD', 'wget', '--no-verbose', '--spider', 'http://localhost:8108/health']
+    #         retries: 5
+    #         timeout: 7s
+    #     labels:
+    #         - traefik.enable=true
+    #         - traefik.http.routers.laravel-typesense.rule=Host(`typesense.laravel.localhost`)
+    #         - traefik.http.routers.laravel-typesense.entrypoints=web
+    #         - traefik.http.services.laravel-typesense-service.loadbalancer.server.port=8108
 
-    minio:
-        image: 'minio/minio:latest'
-        restart: unless-stopped
-        # ports:
-        #     - '${FORWARD_MINIO_PORT:-9000}:9000'
-        #     - '${FORWARD_MINIO_CONSOLE_PORT:-8900}:8900'
-        environment:
-            MINIO_ROOT_USER: '${MINIO_USER:-sail}'
-            MINIO_ROOT_PASSWORD: '${MINIO_PASSWORD:-password}'
-        volumes:
-            - 'sail-minio:/data/minio'
-        networks:
-            - sail
-            - traefik
-        command: minio server /data/minio --console-address ":8900"
-        healthcheck:
-            test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
-            retries: 3
-            timeout: 5s
-        labels:
-            - traefik.enable=true
-            # - traefik.http.routers.laravel-minio.rule=Host(`minio.laravel.localhost`)
-            # - traefik.http.routers.laravel-minio.entrypoints=web
-            # - traefik.http.routers.laravel-minio.service=laravel-minio-service
-            # - traefik.http.services.laravel-minio-service.loadbalancer.server.port=9000
-            - traefik.http.routers.laravel-minio-console.rule=Host(`console.minio.laravel.localhost`)
-            - traefik.http.routers.laravel-minio-console.entrypoints=web
-            - traefik.http.routers.laravel-minio-console.service=laravel-minio-console-service
-            - traefik.http.services.laravel-minio-console-service.loadbalancer.server.port=8900
+    # meilisearch:
+    #     image: 'getmeili/meilisearch:latest'
+    #     restart: unless-stopped
+    #     # ports:
+    #     #     - '${FORWARD_MEILISEARCH_PORT:-7700}:7700'
+    #     environment:
+    #         MEILI_NO_ANALYTICS: '${MEILISEARCH_NO_ANALYTICS:-false}'
+    #     volumes:
+    #         - 'sail-meilisearch:/meili_data'
+    #     networks:
+    #         - sail
+    #         - traefik
+    #     healthcheck:
+    #         test: ['CMD', 'wget', '--no-verbose', '--spider', 'http://localhost:7700/health']
+    #         retries: 3
+    #         timeout: 5s
+    #     labels:
+    #         - traefik.enable=true
+    #         - traefik.http.routers.laravel-meilisearch.rule=Host(`meilisearch.laravel.localhost`)
+    #         - traefik.http.routers.laravel-meilisearch.entrypoints=web
+    #         - traefik.http.services.laravel-meilisearch-service.loadbalancer.server.port=7700
 
-    soketi:
-        image: 'quay.io/soketi/soketi:latest-16-alpine'
-        restart: unless-stopped
-        # ports:
-        #     - '${PUSHER_PORT:-6001}:6001'
-        #     - '${PUSHER_METRICS_PORT:-9601}:9601'
-        environment:
-            SOKETI_DEBUG: '${SOKETI_DEBUG:-1}'
-            SOKETI_METRICS_SERVER_PORT: '9601'
-            SOKETI_DEFAULT_APP_ID: '${PUSHER_APP_ID:-laravel}'
-            SOKETI_DEFAULT_APP_KEY: '${PUSHER_APP_KEY:-app_key}'
-            SOKETI_DEFAULT_APP_SECRET: '${PUSHER_APP_SECRET:-app_secret}'
-        networks:
-            - sail
-            - traefik
-        labels:
-            - traefik.enable=true
-            - traefik.http.routers.laravel-soketi.rule=Host(`soketi.laravel.localhost`)
-            - traefik.http.routers.laravel-soketi.entrypoints=web
-            - traefik.http.routers.laravel-soketi.service=laravel-soketi-service
-            - traefik.http.services.laravel-soketi-service.loadbalancer.server.port=6001
-            - traefik.http.routers.laravel-soketi-metrics.rule=Host(`metrics.soketi.laravel.localhost`)
-            - traefik.http.routers.laravel-soketi-metrics.entrypoints=web
-            - traefik.http.routers.laravel-soketi-metrics.service=laravel-soketi-metrics-service
-            - traefik.http.services.laravel-soketi-metrics-service.loadbalancer.server.port=9601
+    # minio:
+    #     image: 'minio/minio:latest'
+    #     restart: unless-stopped
+    #     # ports:
+    #     #     - '${FORWARD_MINIO_PORT:-9000}:9000'
+    #     #     - '${FORWARD_MINIO_CONSOLE_PORT:-8900}:8900'
+    #     environment:
+    #         MINIO_ROOT_USER: '${MINIO_USER:-sail}'
+    #         MINIO_ROOT_PASSWORD: '${MINIO_PASSWORD:-password}'
+    #     volumes:
+    #         - 'sail-minio:/data/minio'
+    #     networks:
+    #         - sail
+    #         - traefik
+    #     command: minio server /data/minio --console-address ":8900"
+    #     healthcheck:
+    #         test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+    #         retries: 3
+    #         timeout: 5s
+    #     labels:
+    #         - traefik.enable=true
+    #         # - traefik.http.routers.laravel-minio.rule=Host(`minio.laravel.localhost`)
+    #         # - traefik.http.routers.laravel-minio.entrypoints=web
+    #         # - traefik.http.routers.laravel-minio.service=laravel-minio-service
+    #         # - traefik.http.services.laravel-minio-service.loadbalancer.server.port=9000
+    #         - traefik.http.routers.laravel-minio-console.rule=Host(`console.minio.laravel.localhost`)
+    #         - traefik.http.routers.laravel-minio-console.entrypoints=web
+    #         - traefik.http.routers.laravel-minio-console.service=laravel-minio-console-service
+    #         - traefik.http.services.laravel-minio-console-service.loadbalancer.server.port=8900
 
-    open-observe:
-        image: public.ecr.aws/zinclabs/openobserve:latest
-        restart: unless-stopped
-        # ports:
-        #     - '${FORWARD_OPEN_OBSERVE_PORT:-5080}:5080'
-        environment:
-            ZO_DATA_DIR: /data
-            ZO_ROOT_USER_EMAIL: ${ZO_ROOT_USER_EMAIL:-test@example.com}
-            ZO_ROOT_USER_PASSWORD: ${ZO_ROOT_USER_PASSWORD:-password}
-        volumes:
-            - sail-open-observe:/data
-        networks:
-            - sail
-            - traefik
-        labels:
-            - traefik.enable=true
-            - traefik.http.routers.laravel-open-observe.rule=Host(`open-observe.laravel.localhost`)
-            - traefik.http.routers.laravel-open-observe.entrypoints=web
-            - traefik.http.services.laravel-open-observe-service.loadbalancer.server.port=5080
+    # mongodb:
+    #     image: mongodb/mongodb-atlas-local:latest
+    #     environment:
+    #         - 'MONGODB_INITDB_ROOT_USERNAME=${MONGODB_USERNAME:-}'
+    #         - 'MONGODB_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD:-}'
+    #     volumes:
+    #         - sail-mongodb:/data/d
+    #     # ports:
+    #     #     - '${FORWARD_MONGODB_PORT:-27017}:27017'
+    #     networks:
+    #         - sail
+    #     healthcheck:
+    #         test:
+    #             - CMD
+    #             - mongosh
+    #             - 'mongodb://localhost:27017/admin'
+    #             - '--eval=db.runCommand({ping:1})'
+    #         retries: 3
+    #         timeout: 5s
+
+    # soketi:
+    #     image: 'quay.io/soketi/soketi:latest-16-alpine'
+    #     restart: unless-stopped
+    #     # ports:
+    #     #     - '${PUSHER_PORT:-6001}:6001'
+    #     #     - '${PUSHER_METRICS_PORT:-9601}:9601'
+    #     environment:
+    #         SOKETI_DEBUG: '${SOKETI_DEBUG:-1}'
+    #         SOKETI_METRICS_SERVER_PORT: '9601'
+    #         SOKETI_DEFAULT_APP_ID: '${PUSHER_APP_ID:-laravel}'
+    #         SOKETI_DEFAULT_APP_KEY: '${PUSHER_APP_KEY:-app_key}'
+    #         SOKETI_DEFAULT_APP_SECRET: '${PUSHER_APP_SECRET:-app_secret}'
+    #     networks:
+    #         - sail
+    #         - traefik
+    #     labels:
+    #         - traefik.enable=true
+    #         - traefik.http.routers.laravel-soketi.rule=Host(`soketi.laravel.localhost`)
+    #         - traefik.http.routers.laravel-soketi.entrypoints=web
+    #         - traefik.http.routers.laravel-soketi.service=laravel-soketi-service
+    #         - traefik.http.services.laravel-soketi-service.loadbalancer.server.port=6001
+    #         - traefik.http.routers.laravel-soketi-metrics.rule=Host(`metrics.soketi.laravel.localhost`)
+    #         - traefik.http.routers.laravel-soketi-metrics.entrypoints=web
+    #         - traefik.http.routers.laravel-soketi-metrics.service=laravel-soketi-metrics-service
+    #         - traefik.http.services.laravel-soketi-metrics-service.loadbalancer.server.port=9601
 
 networks:
     sail:
@@ -229,9 +249,11 @@ volumes:
         driver: local
     sail-mailpit:
         driver: local
-    sail-open-observe:
+    sail-typesense:
         driver: local
     sail-meilisearch:
         driver: local
     sail-minio:
+        driver: local
+    sail-mongodb:
         driver: local
