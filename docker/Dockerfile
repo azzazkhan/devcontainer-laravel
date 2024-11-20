@@ -3,13 +3,13 @@ FROM ubuntu:22.04
 ARG WWWGROUP=1000
 ARG WWWUSER=1000
 ARG NODE_VERSION=20
-ARG POSTGRES_VERSION=15
+ARG POSTGRES_VERSION=17
 
 WORKDIR /var/www
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV TZ=UTC
-ENV SUPERVISOR_PHP_COMMAND="php -d variables_order=EGPCS /var/www/artisan serve --host=0.0.0.0 --port=80"
+ENV SUPERVISOR_PHP_COMMAND="/usr/bin/php -d variables_order=EGPCS /var/www/artisan serve --host=0.0.0.0 --port=80"
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
@@ -19,7 +19,7 @@ RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install -y gnupg gosu curl ca-certificates zip unzip git \
     supervisor sqlite3 libcap2-bin libpng-dev python2 dnsutils \
-    librsvg2-bin fswatch wget tar zsh vim
+    librsvg2-bin fswatch ffmpeg nano wget tar zsh vim
 
 # Add APT repository for PHP
 RUN curl -sS 'https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x14aa40ec0831756756d7f66c4f4ea0aae5267a6c' | gpg --dearmor | tee /etc/apt/keyrings/ppa_ondrej_php.gpg > /dev/null \
@@ -66,15 +66,7 @@ RUN setcap "cap_net_bind_service=+ep" /usr/bin/php8.3
 
 # Register new group and user for sail
 RUN groupadd --force -g $WWWGROUP sail
-RUN useradd -ms /usr/bin/zsh --no-user-group -g $WWWGROUP -u 1337 sail
-
-# Install OMZ for sail user and set theme and plugins
-RUN gosu sail sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.5/zsh-in-docker.sh)" -- \
-    -t robbyrussell \
-    -p git \
-    -p 'history-substring-search' \
-    -a 'alias artisan="php artisan"' \
-    -a 'alias pint="./vendor/bin/pint"'
+RUN useradd -ms /bin/bash --no-user-group -g $WWWGROUP -u 1337 sail
 
 # Mark CWD safe for git
 RUN git config --global --add safe.directory /var/www
@@ -86,6 +78,6 @@ COPY php.ini /etc/php/8.3/cli/conf.d/99-sail.ini
 RUN chmod +x /usr/local/bin/start-container
 RUN chmod +x /usr/local/bin/post-create-container
 
-EXPOSE 8000
+EXPOSE 80/tcp
 
 ENTRYPOINT ["start-container"]
